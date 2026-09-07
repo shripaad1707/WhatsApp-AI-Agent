@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #222; line-height: 1.5; margin: 40px; }
+  h1 { color: #1a3c6e; border-bottom: 3px solid #1a3c6e; padding-bottom: 8px; }
+  h2 { color: #1a3c6e; margin-top: 40px; border-left: 6px solid #4a90d9; padding-left: 12px; }
+  h3 { color: #2c5282; margin-top: 24px; }
+  .analogy { background: #eef5ff; border-left: 4px solid #4a90d9; padding: 12px 16px; margin: 14px 0; border-radius: 4px; }
+  .file-box { background: #f7f7f7; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; margin: 10px 0; }
+  .file-name { font-family: Consolas, monospace; font-weight: bold; color: #b23c00; }
+  code { font-family: Consolas, monospace; background: #f0f0f0; padding: 1px 5px; border-radius: 3px; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; }
+  th, td { border: 1px solid #ccc; padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #1a3c6e; color: white; }
+  tr:nth-child(even) { background: #f7f9fc; }
+  .error-box { background: #fff3f3; border-left: 4px solid #d9534f; padding: 10px 14px; margin: 10px 0; border-radius: 4px; }
+  .fixed-box { background: #f0fff4; border-left: 4px solid #3c9d5c; padding: 10px 14px; margin: 6px 0 18px 0; border-radius: 4px; }
+  .cover { text-align: center; margin-bottom: 60px; }
+  .toc { background: #f7f9fc; padding: 16px 24px; border-radius: 6px; }
+  .toc a { text-decoration: none; color: #1a3c6e; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1 style="border:none; font-size: 34px;">Your WhatsApp AI Support Agent</h1>
+  <p style="font-size: 18px; color: #555;">A plain-English guide to what we built, how the code works,<br>
+  and every bump we hit along the way (and how to fix them yourself next time)</p>
+</div>
+
+<div class="toc">
+  <strong>What's in this guide:</strong>
+  <ol>
+    <li>The Big Picture &mdash; what this project actually does</li>
+    <li>A Message's Journey &mdash; step by step, in plain words</li>
+    <li>The Code Folders, Explained Simply</li>
+    <li>The Three Test Files, Explained</li>
+    <li>What is "ngrok" and a "Tunnel"? (the new concept)</li>
+    <li>Every Error We Hit &mdash; and What It Really Meant</li>
+    <li>A Cheat Sheet: What You Can Fix Yourself Next Time</li>
+  </ol>
+</div>
+
+<h2>1. The Big Picture</h2>
+
+<p>You now have a robot that lives on WhatsApp for a pretend online store called
+<strong>AuraLoop Electronics</strong>. Customers text it things like <em>"where is my
+order?"</em> or <em>"I want a refund"</em>, and it answers using <strong>real data</strong>
+from a real database &mdash; never by guessing or making things up.</p>
+
+<div class="analogy">
+<strong>Think of it like a very well-trained new employee</strong> at a call center, who:
+<ul>
+<li>Never says "I think your order shipped" &mdash; they always actually <em>look it up</em> first.</li>
+<li>Knows the return policy by heart, but never bends the rules on their own &mdash; if a
+refund is expensive or unclear, they always call a manager over.</li>
+<li>Writes down everything they did in a logbook, so if you ever ask "why did you say
+that?", there's a paper trail.</li>
+</ul>
+</div>
+
+<p>The "employee" is powered by <strong>Google's Gemini AI</strong>. But &mdash; and this is
+the most important idea in the whole project &mdash; <strong>the AI is never allowed to
+decide the risky stuff on its own.</strong> It can only:</p>
+<ol>
+<li>Decide which "tool" (helper function) to use to look something up, and</li>
+<li>Write the reply message.</li>
+</ol>
+<p>Whether to actually <em>send</em> that reply, or instead hand the conversation to a real
+human, is decided by plain, boring, 100%-predictable computer code &mdash; not the AI.
+That's on purpose: AI can be confidently wrong sometimes, but simple "if this number is
+bigger than that number, call a human" logic never surprises you.</p>
+
+<h2>2. A Message's Journey (Step by Step)</h2>
+
+<table>
+<tr><th>Step</th><th>What Happens</th><th>In Plain Words</th></tr>
+<tr><td>1. WhatsApp</td><td>Customer sends a message</td><td>Someone texts "where is my order?"</td></tr>
+<tr><td>2. Twilio</td><td>Twilio (the WhatsApp middleman company) receives it and forwards it to our server</td><td>Like a mail carrier delivering the letter to our door</td></tr>
+<tr><td>3. Identify the Customer</td><td>We look up who this phone number belongs to</td><td>Checking their name badge before helping them</td></tr>
+<tr><td>4. Check the "explicit human request" rule</td><td>Plain code checks: did they just say "talk to a human"?</td><td>A simple keyword check &mdash; no AI needed for this</td></tr>
+<tr><td>5. Gather context (RAG)</td><td>We fetch the last few messages, plus any relevant paragraphs from our policy document</td><td>Like handing the employee a sticky note with "here's what they said before, and here's the relevant page of the policy manual"</td></tr>
+<tr><td>6. The AI Agent thinks</td><td>Gemini decides which tool(s) to call: look up the order? check refund eligibility?</td><td>The employee decides "let me check the computer system" instead of guessing</td></tr>
+<tr><td>7. Tools run</td><td>Real database queries happen, real answers come back</td><td>The "computer system" actually gets checked</td></tr>
+<tr><td>8. The AI drafts a reply</td><td>Gemini writes an answer using only the real data it just fetched</td><td>The employee writes their answer down</td></tr>
+<tr><td>9. The Decision Engine judges</td><td>Plain code checks: is this risky? high value? low confidence?</td><td>A supervisor glancing over the employee's shoulder before it's sent</td></tr>
+<tr><td>10a. Auto-reply</td><td>If it's safe, the reply is sent for real</td><td>Employee sends the message</td></tr>
+<tr><td>10b. OR Escalate</td><td>If it's risky, a ticket is created and a human takes over &mdash; the AI's draft is thrown away, never sent</td><td>"Let me get my manager" &mdash; and the manager starts fresh</td></tr>
+<tr><td>11. Everything is logged</td><td>Every tool call and every decision is written to the database</td><td>The logbook, so nothing is a mystery later</td></tr>
+</table>
+
+<div class="page-break"></div>
+
+<h2>3. The Code Folders, Explained Simply</h2>
+
+<p>Here's every folder inside <code>app/</code>, explained like you're new to programming.</p>
+
+<div class="file-box">
+<span class="file-name">app/db/models.py</span>
+<p>This is the <strong>blueprint for the filing cabinet</strong>. It describes every
+"drawer" (table) we have: customers, orders, products, tickets, conversations,
+messages, and two "logbook" drawers (tool_call_logs, audit_logs). It doesn't
+<em>do</em> anything by itself &mdash; it just describes the shape of the data.</p>
+</div>
+
+<div class="file-box">
+<span class="file-name">app/repositories/</span>
+<p>These are the <strong>librarians</strong>. Each one knows how to fetch or store
+things in one specific drawer. For example, <code>customer_repo.py</code> knows how
+to "find the customer whose phone number is X" or "create a new customer." Nothing
+else in the app is allowed to touch the database directly &mdash; everything goes
+through a librarian. This keeps things tidy and makes bugs easier to find.</p>
+</div>
+
+<div class="file-box">
+<span class="file-name">app/tools/</span>
+<p>These are the <strong>specific tasks the AI is allowed to ask for help with</strong> &mdash;
+and nothing more. There are five: look up my profile, look up an order, search
+products, create/list a ticket, and check refund eligibility. The AI can never do
+anything outside this list &mdash; it can't, say, delete a customer or look up someone
+else's order, because those abilities simply don't exist as tools.</p>
+<p><span class="file-name">app/tools/refund_policy.py</span> is special: it's the
+actual <strong>rulebook</strong> for refunds (is the order still within 30 days? has
+it been delivered?), written as plain boring code with zero AI involved. The AI
+calls this rulebook and reports what it says &mdash; it never makes up its own
+answer.</p>
+</div>
+
+<div class="file-box">
+<span class="file-name">app/agent/</span>
+<p>This is the <strong>AI's thinking loop</strong>. <code>graph.py</code> is the
+core: it asks Gemini "what do you want to do?", and if Gemini says "call this
+tool," it runs the tool, shows Gemini the result, and asks again &mdash; looping
+until Gemini says "I'm ready to answer." Then a second, final question is asked:
+"okay, now give me your answer in this exact structured format" (so we can trust
+the reply has a confidence score, an intent label, etc., instead of just loose
+text).</p>
+</div>
+
+<div class="file-box">
+<span class="file-name">app/decision_engine/</span>
+<p>This is the <strong>supervisor</strong>. <code>rules.py</code> checks for
+phrases like "talk to a human." <code>engine.py</code> checks, in a fixed order:
+did they ask for a human? is the AI's confidence too low? is the order too
+expensive? is the refund situation unclear? Only plain "if/else" logic here &mdash;
+no AI, ever. This is the single most important file for <em>trust</em>: it's the
+one place that decides if a human needs to step in.</p>
+</div>
+
+<div class="file-box">
+<span class="file-name">app/services/</span>
+<p>These are the <strong>connectors to the outside world</strong>:
+<code>whatsapp.py</code> is the only file allowed to talk to Twilio (sending
+messages, checking that a message really came from Twilio and wasn't faked).
+<code>embeddings.py</code> talks to Gemini to turn text into a list of numbers (for
+searching the policy document by meaning, not just keywords). <code>rag.py</code>
+does that policy search. <code>pipeline.py</code> is the "conductor" that calls
+everything else in the right order &mdash; it's the file that actually implements
+the 11-step journey from Section 2.</p>
+</div>
+
+<div class="file-box">
+<span class="file-name">app/routers/</span>
+<p>The <strong>front door and windows</strong> of the app. <code>webhook.py</code>
+is the front door Twilio knocks on when a WhatsApp message arrives. The other files
+(<code>conversations.py</code>, <code>tickets.py</code>, <code>escalations.py</code>)
+are "windows" a manager could look through later to see what happened &mdash; e.g. "show
+me every escalated conversation."</p>
+</div>
+
+<div class="file-box">
+<span class="file-name">app/knowledge_base/</span>
+<p>The actual <strong>policy documents</strong> (return policy, shipping policy,
+FAQs, and now your SmileCare Dental PDF too), plus <code>ingest.py</code>, which
+chops each document into bite-sized paragraphs and turns each one into a list of
+numbers Gemini can search by meaning later.</p>
+</div>
+
+<div class="file-box">
+<span class="file-name">scripts/</span>
+<p><code>seed_data.py</code> invents 18 fake customers, 26 fake products, and 36
+fake orders so we have something to test with. <code>simulate_message.py</code>
+lets us pretend a WhatsApp message arrived, without needing a real phone or Twilio
+webhook &mdash; useful for quick testing.</p>
+</div>
+
+<div class="page-break"></div>
+
+<h2>4. The Three Test Files, Explained</h2>
+
+<p>A "test" is just a small program that checks another piece of code does what
+it's supposed to, using made-up example situations. Think of it as a pop quiz we
+give our own code, so we find mistakes before a real customer does.</p>
+
+<div class="file-box">
+<span class="file-name">tests/test_refund_policy.py</span>
+<p>This quizzes the refund <em>rulebook</em> (not the AI &mdash; the plain code
+rules). It makes up example orders like "delivered exactly 30 days ago" or
+"delivered 31 days ago" and checks the rulebook gives the right answer (eligible vs.
+not eligible) for each one. This is the kind of test that catches "off by one day"
+mistakes, which are very easy to accidentally get wrong.</p>
+</div>
+
+<div class="file-box">
+<span class="file-name">tests/test_decision_engine.py</span>
+<p>This quizzes the <em>supervisor</em>. It makes up pretend situations &mdash; "customer
+asked for a human," "AI wasn't confident," "order is very expensive" &mdash; and
+checks the supervisor escalates (or doesn't) correctly in each case, and in the
+right priority order. This is the test that protects you from the AI ever silently
+being allowed to approve something it shouldn't.</p>
+</div>
+
+<div class="file-box">
+<span class="file-name">tests/test_agent_graph.py</span>
+<p>This quizzes the AI's <em>thinking loop</em> itself &mdash; but using a "pretend AI"
+(a fake, scripted stand-in) instead of really calling Gemini. Why? Because real AI
+calls cost money and take time, and we just want to check our own wiring is
+correct: does the loop actually call the tool when asked? Does it correctly stop
+and finalize when the AI says it's done? Using a fake AI lets us check that in a
+fraction of a second, for free, every single time we change the code.</p>
+</div>
+
+<p>All three run in under 4 seconds total with the command <code>pytest -q</code>,
+and none of them need your real database or a real Gemini key &mdash; that's the point
+of tests like these: fast, free, repeatable checks of the parts we can fully
+control.</p>
+
+<h2>5. What is "ngrok" and a "Tunnel"? (The New Concept)</h2>
+
+<div class="analogy">
+<strong>The problem:</strong> your laptop is sitting on your home/office network.
+Twilio's servers, out on the real internet, have no way to find or reach your
+laptop directly &mdash; it's like trying to mail a letter to someone with no street
+address. But Twilio needs to <em>send</em> your server a message every time someone
+texts your WhatsApp bot.
+</div>
+
+<div class="analogy">
+<strong>The solution: a "tunnel."</strong> A tunnel service gives your laptop a
+temporary, real, public internet address (like <code>https://jcxbksjh-8001.inc1.devtunnels.ms</code>),
+and quietly relays anything sent to that public address straight through to a specific
+port on your own machine (in our case, port 8001, where our app was listening).
+It's like a mail-forwarding service: the letter arrives at a public P.O. box, and is
+instantly re-delivered to your actual house.
+</div>
+
+<p><strong>ngrok</strong> is the most famous tool that does this. We tried to install
+it, but your antivirus (Windows Defender) flagged the ngrok program itself as
+suspicious and deleted it every time &mdash; three separate times, including Microsoft's
+own official installer version. This is a known "false positive": tunneling tools
+get flagged sometimes because hackers also use them, even though ngrok itself is
+legitimate. We didn't try to force past your antivirus, since that's a security
+decision that's yours to make, not mine.</p>
+
+<p>Instead, we used <strong>VS Code's own built-in port forwarding</strong> (the
+"Ports" panel), which does the exact same job as ngrok, but is Microsoft's own
+trusted tool built into the editor you're already using &mdash; so there was no
+antivirus conflict at all.</p>
+
+<h2>6. Every Error We Hit &mdash; and What It Really Meant</h2>
+
+<p>Software almost never works perfectly on the first try &mdash; that's completely
+normal, even for experienced developers. Here's everything that went wrong, in
+plain English, and how it was fixed.</p>
+
+<div class="error-box"><strong>Error 1: Database migration failed to connect (DNS error)</strong><br>
+Supabase's "direct" database address only works over a newer kind of internet
+addressing (IPv6) that this network couldn't reach.</div>
+<div class="fixed-box"><strong>Fix:</strong> Used Supabase's alternate "session pooler"
+address instead, which works over the older, more universal addressing (IPv4).
+<em>Could you have caught this yourself?</em> Only with some networking knowledge &mdash;
+this one's genuinely tricky.</div>
+
+<div class="error-box"><strong>Error 2: Wrong database password</strong><br>
+The very first password given didn't match what Supabase had on file.</div>
+<div class="fixed-box"><strong>Fix:</strong> You reset the password in Supabase's
+dashboard and gave me the new one. <em>Could you have caught this yourself?</em> Yes
+&mdash; the error message literally said "password authentication failed," which is a
+clear signal to double check the password.</div>
+
+<div class="error-box"><strong>Error 3: "type order_status already exists"</strong><br>
+A technical mistake in how I told the database to set up its categories (like
+"delivered," "processing," etc.) &mdash; I accidentally told it to create the same
+category twice.</div>
+<div class="fixed-box"><strong>Fix:</strong> Changed the setup code to only create
+each category once. <em>Could you have caught this yourself?</em> Not really &mdash; this
+needed knowledge of a specific database library's quirks.</div>
+
+<div class="error-box"><strong>Error 4: "prepared statement already exists" (multiple times)</strong><br>
+Supabase's shared, pooled database connections can be secretly recycled between
+different requests. Our database library was leaving "sticky notes" (prepared
+statements) with the same name on a connection, and the next request would find an
+old sticky note already there and complain.</div>
+<div class="fixed-box"><strong>Fix:</strong> Told our code to always use a random,
+never-repeating name for every "sticky note" instead of counting 1, 2, 3... <em>Could
+you have caught this yourself?</em> No &mdash; this is a genuinely obscure interaction
+between three different pieces of software.</div>
+
+<div class="error-box"><strong>Error 5: Orders saved with the wrong category text ("DELIVERED" instead of "delivered")</strong><br>
+Our database library defaulted to sending the ALL-CAPS internal name of a category
+instead of the actual lowercase word we told the database to expect.</div>
+<div class="fixed-box"><strong>Fix:</strong> Explicitly told the library "always use
+the lowercase version." <em>Could you have caught this yourself?</em> Only by
+carefully reading the error message, which did clearly say what value it tried to
+save &mdash; so partially yes, with practice.</div>
+
+<div class="error-box"><strong>Error 6: Gemini said "429 you've used up your quota" (only 20 messages/day allowed)</strong><br>
+The AI model you'd chosen has a very small free daily allowance.</div>
+<div class="fixed-box"><strong>Fix:</strong> Switched to a different Gemini model
+with a separate, more generous free allowance. <em>Could you have caught this
+yourself?</em> Yes, easily &mdash; the error message directly says "quota exceeded" and
+names the limit.</div>
+
+<div class="error-box"><strong>Error 7: Gemini said "model no longer available"</strong><br>
+An older AI model version had been retired for new accounts.</div>
+<div class="fixed-box"><strong>Fix:</strong> The error message literally told us
+which newer model to use instead, so we switched. <em>Could you have caught this
+yourself?</em> Yes &mdash; the error message spells out the fix directly.</div>
+
+<div class="error-box"><strong>Error 8: "python-multipart library must be installed"</strong><br>
+A required helper package for reading incoming web form data was missing.</div>
+<div class="fixed-box"><strong>Fix:</strong> Installed it with one command
+(<code>pip install python-multipart</code>). <em>Could you have caught this
+yourself?</em> Yes &mdash; this is one of the easiest kinds of error to fix: the message
+tells you exactly what's missing.</div>
+
+<div class="error-box"><strong>Error 9: "Twilio could not find a Channel with the specified From address"</strong><br>
+We were trying to send WhatsApp messages "from" your regular Twilio phone number,
+but that number isn't set up for WhatsApp &mdash; only the special Sandbox number is.</div>
+<div class="fixed-box"><strong>Fix:</strong> Switched the "From" number to Twilio's
+fixed shared Sandbox number, <code>+14155238886</code>. <em>Could you have caught
+this yourself?</em> Somewhat &mdash; this needed knowing Twilio's Sandbox rules
+specifically.</div>
+
+<div class="error-box"><strong>Error 10: "Sandbox can only send to numbers that joined" (error 63015)</strong><br>
+You hadn't yet texted the special "join &lt;code&gt;" message to the Sandbox
+number from your own WhatsApp.</div>
+<div class="fixed-box"><strong>Fix:</strong> You sent the join message, and it
+started working. <em>Could you have caught this yourself?</em> Yes, very easily &mdash;
+once told about the join step, which is standard for anyone setting up a Twilio
+Sandbox for the first time.</div>
+
+<div class="error-box"><strong>Error 11: Real WhatsApp messages got rejected with "403 Forbidden"</strong><br>
+This was the trickiest one. Our server double-checks that every incoming message
+really came from Twilio (not an imposter) by re-computing a security signature and
+comparing it. But behind a tunnel, the server only sees its own private address
+(<code>localhost:8001</code>), not the public address Twilio actually used
+(<code>https://jcxbksjh-8001.inc1.devtunnels.ms</code>) &mdash; so the signatures never
+matched, and every real message was rejected.</div>
+<div class="fixed-box"><strong>Fix:</strong> Taught the server to read two special
+delivery headers the tunnel adds (<code>X-Forwarded-Proto</code> and
+<code>X-Forwarded-Host</code>) and reconstruct the real public address before
+checking the signature. <em>Could you have caught this yourself?</em> Not
+easily &mdash; this needed adding temporary debug logging to see exactly what the tunnel
+was sending, which is a normal but fairly advanced debugging technique.</div>
+
+<h2>7. Cheat Sheet: What You Can Fix Yourself Next Time</h2>
+
+<table>
+<tr><th>If you see this in the error message...</th><th>...it probably means</th></tr>
+<tr><td><code>password authentication failed</code></td><td>Double-check the password in your <code>.env</code> file matches what's in Supabase/Twilio/etc.</td></tr>
+<tr><td><code>ModuleNotFoundError</code> or "library must be installed"</td><td>Run <code>pip install &lt;the missing package name&gt;</code></td></tr>
+<tr><td><code>429</code> / "quota exceeded" / "RESOURCE_EXHAUSTED"</td><td>You've used up a free daily/monthly limit &mdash; wait, or switch to a different model/plan</td></tr>
+<tr><td><code>404</code> / "model not found" / "no longer available"</td><td>The AI model name is outdated &mdash; the error usually names the replacement</td></tr>
+<tr><td>"could not find a Channel" / "not a valid phone number"</td><td>Check phone number formatting (needs <code>whatsapp:+</code> and country code) and that you're using the right Twilio number for WhatsApp</td></tr>
+<tr><td>Sandbox error 63015 / "hasn't joined"</td><td>Re-send the "join &lt;code&gt;" message from your WhatsApp &mdash; it expires every 3 days</td></tr>
+<tr><td><code>403 Forbidden</code> on a webhook</td><td>A security signature check failed &mdash; usually means the server's idea of its own public address is wrong</td></tr>
+<tr><td>Anything mentioning "prepared statement" or "enum type already exists"</td><td>These are deep database-library quirks &mdash; not worth debugging alone, just ask for help with the exact error text</td></tr>
+</table>
+
+<p style="margin-top: 40px; color: #777; font-size: 13px;">
+Generated as a plain-English companion to the AI Customer Support &amp; Sales Agent project.
+For the technical version of everything above, see <code>README.md</code> in the project folder.
+</p>
+
+</body>
+</html>
